@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       // App Title
                       Text(
-                        'Lock-In Factory',
+                        'Clock in at the Lock-In Factory',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.deepPurple,
@@ -91,7 +91,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Your Social Accountability Partner',
+                        'Let\'s chase down our wildest dreams together',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey[600],
                         ),

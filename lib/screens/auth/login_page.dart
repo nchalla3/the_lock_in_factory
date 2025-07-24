@@ -85,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                         'Clock in at the Lock-In Factory',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple,
+                          color: const Color(0xFF8D6E63), // Light brown
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -149,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
                       ElevatedButton(
                         onPressed: _isLoading ? null : _handleEmailAuth,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
+                          backgroundColor: const Color(0xFF8D6E63), // Light brown
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(

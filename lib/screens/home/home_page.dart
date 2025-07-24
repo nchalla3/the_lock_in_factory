@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -10,151 +11,79 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
-  
-  // Mock data for the database-like view
-  List<Map<String, dynamic>> _tasks = [
-    {
-      'id': 1,
-      'title': 'Complete Flutter project',
-      'status': 'In Progress',
-      'priority': 'High',
-      'dueDate': '2024-01-15',
-      'assignee': 'You',
-      'progress': 0.7,
-    },
-    {
-      'id': 2,
-      'title': 'Review team goals',
-      'status': 'To Do',
-      'priority': 'Medium',
-      'dueDate': '2024-01-20',
-      'assignee': 'Team',
-      'progress': 0.0,
-    },
-    {
-      'id': 3,
-      'title': 'Daily workout routine',
-      'status': 'Done',
-      'priority': 'Low',
-      'dueDate': '2024-01-10',
-      'assignee': 'You',
-      'progress': 1.0,
-    },
+
+  // Simplified mock data based on wireframe
+  final List<Map<String, dynamic>> _activeTasks = [
+    {'title': 'Interview practice', 'type': 'Today'},
+    {'title': 'Gym', 'type': 'Today'},
   ];
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Done':
-        return Colors.green;
-      case 'In Progress':
-        return Colors.orange;
-      case 'To Do':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
+  final List<Map<String, dynamic>> _plannedTasks = [
+    {'title': 'Systems architecture', 'type': 'Planned'},
+  ];
+
+  final List<Map<String, dynamic>> _onHoldTasks = [
+    {'title': 'Marathon practice', 'type': 'On Hold'},
+  ];
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Text(
+        title,
+        style: GoogleFonts.oswald(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF8D6E63),
+        ),
+      ),
+    );
   }
 
-  Color _getPriorityColor(String priority) {
-    switch (priority) {
-      case 'High':
-        return Colors.red;
-      case 'Medium':
-        return Colors.orange;
-      case 'Low':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  Widget _buildTaskCard(Map<String, dynamic> task) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    task['title'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(task['status']).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _getStatusColor(task['status']),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    task['status'],
-                    style: TextStyle(
-                      color: _getStatusColor(task['status']),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.flag,
-                  size: 16,
-                  color: _getPriorityColor(task['priority']),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  task['priority'],
-                  style: TextStyle(
-                    color: _getPriorityColor(task['priority']),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(
-                  task['dueDate'],
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  task['assignee'],
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: task['progress'],
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _getStatusColor(task['status']),
+  Widget _buildTaskItem(String title, String type) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.oswald(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
-        ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF8D6E63).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              type,
+              style: GoogleFonts.oswald(
+                fontSize: 12,
+                color: const Color(0xFF8D6E63),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -166,13 +95,17 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          'Clock in at the Lock-In Factory',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          'Locked-In',
+          style: GoogleFonts.oswald(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
         ),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFF8D6E63),
         foregroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) async {
@@ -181,16 +114,6 @@ class _HomePageState extends State<HomePage> {
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    const Icon(Icons.person),
-                    const SizedBox(width: 8),
-                    Text(user?.displayName ?? user?.email ?? 'User'),
-                  ],
-                ),
-              ),
               const PopupMenuItem(
                 value: 'logout',
                 child: Row(
@@ -206,201 +129,71 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(8.0),
               child: CircleAvatar(
                 backgroundColor: Colors.white,
-                child: user?.photoURL != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.network(
-                          user!.photoURL!,
-                          width: 32,
-                          height: 32,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Text(
-                        (user?.displayName?.isNotEmpty == true
-                            ? user!.displayName![0]
-                            : user?.email?[0] ?? 'U').toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.deepPurple,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                child: Text(
+                  (user?.displayName?.isNotEmpty == true
+                      ? user!.displayName![0]
+                      : user?.email?[0] ?? 'U').toUpperCase(),
+                  style: const TextStyle(
+                    color: Color(0xFF8D6E63),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Header section with stats
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: Colors.deepPurple,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome back, ${user?.displayName?.split(' ')[0] ?? 'Champion'}!',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // New Lock-In Button
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // TODO: Add new lock-in functionality
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8D6E63),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'New Lock-In',
+                    style: GoogleFonts.oswald(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Track your goals and stay accountable',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Column(
-                          children: [
-                            Text(
-                              '3',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Total Tasks',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Column(
-                          children: [
-                            Text(
-                              '1',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Completed',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Column(
-                          children: [
-                            Text(
-                              '67%',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Progress',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
 
-          // Database-like task list
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      const Text(
-                        'My Tasks',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // TODO: Add new task functionality
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add Task'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _tasks.length,
-                    itemBuilder: (context, index) {
-                      return _buildTaskCard(_tasks[index]);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Quick add task
-        },
-        backgroundColor: Colors.deepPurple,
-        child: const Icon(Icons.add, color: Colors.white),
+            // Active Section
+            _buildSectionHeader('Active'),
+            ..._activeTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
+            
+            const SizedBox(height: 24),
+
+            // Planned Section
+            _buildSectionHeader('Planned'),
+            ..._plannedTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
+            
+            const SizedBox(height: 24),
+
+            // On Hold Section
+            _buildSectionHeader('On Hold'),
+            ..._onHoldTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
+            
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

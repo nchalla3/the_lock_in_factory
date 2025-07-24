@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'wrappers/auth_wrapper.dart';
 
@@ -20,8 +21,9 @@ class MyApp extends StatelessWidget {
       title: 'Lock-In Factory',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8D6E63)), // Light brown
         useMaterial3: true,
+        textTheme: GoogleFonts.interTextTheme(),
         appBarTheme: const AppBarTheme(
           centerTitle: true,
         ),

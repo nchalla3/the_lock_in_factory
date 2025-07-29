@@ -239,8 +239,9 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
                         ),
                         onChanged: (value) {
                           // Debounce username checking
+                          final currentDebounceId = ++_debounceId;
                           Future.delayed(const Duration(milliseconds: 500), () {
-                            if (_usernameController.text == value && value.isNotEmpty) {
+                            if (_debounceId == currentDebounceId && _usernameController.text == value && value.isNotEmpty) {
                               _checkUsernameAvailability(value);
                             }
                           });

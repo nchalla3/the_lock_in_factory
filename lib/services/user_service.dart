@@ -155,16 +155,20 @@ class UserService {
   /// Get user profile by username
   Future<UserProfile?> getUserProfileByUsername(String username) async {
     try {
-      final querySnapshot = await _firestore
-          .collection('users')
-          .where('username', isEqualTo: username)
-          .limit(1)
-          .get();
-      
-      if (querySnapshot.docs.isNotEmpty) {
-        return UserProfile.fromFirestore(querySnapshot.docs.first.data());
+      // Check the usernames collection for the corresponding user ID
+      final usernameDoc = await _firestore.collection('usernames').doc(username.toLowerCase()).get();
+      if (!usernameDoc.exists) {
+        return null; // Username not found
       }
-      return null;
+      
+      // Retrieve the user profile using the user ID
+      final userId = usernameDoc.data()?['uid'];
+      if (userId == null) {
+        return null; // UID not found in the username document
+      }
+      
+      final userProfile = await getUserProfile(userId);
+      return userProfile;
     } catch (e) {
       throw Exception('Error getting user profile by username: $e');
     }

@@ -1,8 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:logger/logger.dart';
 import '../models/user_profile.dart';
+import '../utils/validation_utils.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Logger _logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 2,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: false,
+    ),
+  );
 
   // Check if username is available
   Future<bool> isUsernameAvailable(String username) async {
@@ -11,6 +23,24 @@ class UserService {
       return !doc.exists;
     } catch (e) {
       throw Exception('Error checking username availability: $e');
+    }
+  }
+
+  // Validate username format and check availability
+  Future<String?> validateAndCheckUsername(String username) async {
+    // First check format using centralized validation
+    final formatError = ValidationUtils.validateUsername(username);
+    if (formatError != null) {
+      return formatError;
+    }
+
+    // Then check availability
+    try {
+      final isAvailable = await isUsernameAvailable(username.trim());
+      return isAvailable ? null : 'Username is already taken';
+    } catch (e) {
+      _logger.e('Error checking username availability', error: e);
+      return 'Error checking username availability';
     }
   }
 
@@ -26,6 +56,12 @@ class UserService {
     final now = DateTime.now();
 
     try {
+      // Validate username format first
+      final validationError = ValidationUtils.validateUsername(username);
+      if (validationError != null) {
+        throw Exception(validationError);
+      }
+
       // Check if username is still available
       final isAvailable = await isUsernameAvailable(username);
       if (!isAvailable) {
@@ -140,7 +176,7 @@ class UserService {
       final userProfile = await getUserProfileByUsername(username);
       return userProfile?.email;
     } catch (e) {
-      print('Error getting email by username: $e');
+      _logger.w('Error getting email by username', error: e);
       return null;
     }
   }

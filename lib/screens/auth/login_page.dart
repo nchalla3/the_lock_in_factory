@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/google_sign_in_button.dart';
+import '../../utils/validation_utils.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -139,15 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
+                          validator: ValidationUtils.validateEmail,
                         ),
                       ] else ...[
                         // Username Field for Sign In
@@ -183,19 +176,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           validator: (value) {
                             if (_isSignUp) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a username';
-                              }
-                              if (value.trim().length < 3) {
-                                return 'Username must be at least 3 characters';
-                              }
-                              if (value.trim().length > 20) {
-                                return 'Username must be less than 20 characters';
-                              }
-                              final regex = RegExp(r'^[a-zA-Z0-9_]+$');
-                              if (!regex.hasMatch(value.trim())) {
-                                return 'Username can only contain letters, numbers, and underscores';
-                              }
+                              return ValidationUtils.validateUsername(value);
                             }
                             return null;
                           },
@@ -214,15 +195,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
+                        validator: ValidationUtils.validatePassword,
                       ),
                       const SizedBox(height: 24),
 

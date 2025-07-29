@@ -23,28 +23,51 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
-          // User is logged in, check if they have username set
-          return FutureBuilder(
-            future: UserService().getUserProfile(snapshot.data!.uid),
-            builder: (context, userProfileSnapshot) {
-              if (userProfileSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
+          final user = snapshot.data!;
+          
+          // Check if this is a Google user without a profile
+          final isGoogleUser = user.providerData.any((info) => info.providerId == 'google.com');
+          
+          // Only check for username setup if it's a Google user
+          if (isGoogleUser) {
+            return FutureBuilder(
+              future: UserService().getUserProfile(user.uid),
+              builder: (context, userProfileSnapshot) {
+                if (userProfileSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-              if (userProfileSnapshot.hasData && userProfileSnapshot.data != null) {
-                // User has complete profile, go to home
+                if (userProfileSnapshot.hasData && userProfileSnapshot.data != null) {
+                  // User has complete profile, go to home
+                  return const HomePage();
+                } else {
+                  // Google user doesn't have username set, show username selection
+                  return UsernameSelectionPage(
+                    displayName: user.displayName,
+                    photoUrl: user.photoURL,
+                  );
+                }
+              },
+            );
+          } else {
+            // Email/password user - they should have a profile, but check to be safe
+            return FutureBuilder(
+              future: Future.delayed(const Duration(milliseconds: 500))
+                  .then((_) => UserService().getUserProfile(user.uid)),
+              builder: (context, userProfileSnapshot) {
+                if (userProfileSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                // Email/password users should always have a profile by now
                 return const HomePage();
-              } else {
-                // User doesn't have username set, show username selection
-                return UsernameSelectionPage(
-                  displayName: snapshot.data!.displayName,
-                  photoUrl: snapshot.data!.photoURL,
-                );
-              }
-            },
-          );
+              },
+            );
+          }
         } else {
           // User is not logged in
           return const LoginPage();

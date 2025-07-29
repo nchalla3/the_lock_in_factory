@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
 import '../../wrappers/auth_wrapper.dart';
+import '../../utils/validation_utils.dart';
 
 class UsernameSelectionPage extends StatefulWidget {
   final String? displayName;
@@ -53,31 +54,24 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
         .replaceAll(RegExp(r'[^a-z0-9]'), '')
         .trim();
     
-    // Ensure it's between 3-20 characters
-    if (suggestion.length < 3) {
+    // Ensure it's between min-max characters using centralized constants
+    if (suggestion.length < ValidationUtils.minUsernameLength) {
       suggestion = '${suggestion}user';
     }
-    if (suggestion.length > 20) {
-      suggestion = suggestion.substring(0, 20);
+    if (suggestion.length > ValidationUtils.maxUsernameLength) {
+      suggestion = suggestion.substring(0, ValidationUtils.maxUsernameLength);
     }
     
     return suggestion;
   }
 
   Future<void> _checkUsernameAvailability(String username) async {
-    if (username.trim().length < 3) {
+    // Use centralized validation
+    final validationError = ValidationUtils.validateUsername(username);
+    if (validationError != null) {
       setState(() {
         _isUsernameAvailable = false;
-        _availabilityMessage = 'Username must be at least 3 characters';
-        _isCheckingAvailability = false;
-      });
-      return;
-    }
-
-    if (username.trim().length > 20) {
-      setState(() {
-        _isUsernameAvailable = false;
-        _availabilityMessage = 'Username must be less than 20 characters';
+        _availabilityMessage = validationError;
         _isCheckingAvailability = false;
       });
       return;
@@ -252,14 +246,10 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
                           });
                         },
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter a username';
-                          }
-                          if (value.trim().length < 3) {
-                            return 'Username must be at least 3 characters';
-                          }
-                          if (value.trim().length > 20) {
-                            return 'Username must be less than 20 characters';
+                          // Use centralized validation
+                          final validationError = ValidationUtils.validateUsername(value);
+                          if (validationError != null) {
+                            return validationError;
                           }
                           if (_isUsernameAvailable != true) {
                             return 'Please choose an available username';

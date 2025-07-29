@@ -13,6 +13,8 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _signInUsernameController = TextEditingController(); // For sign-in
   final AuthService _authService = AuthService();
   
   bool _isLoading = false;
@@ -22,6 +24,8 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _usernameController.dispose();
+    _signInUsernameController.dispose();
     super.dispose();
   }
 
@@ -35,19 +39,42 @@ class _LoginPageState extends State<LoginPage> {
         await _authService.signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
+          username: _usernameController.text.trim(),
         );
       } else {
-        await _authService.signIn(
-          email: _emailController.text.trim(),
+        // Sign in with username and password
+        await _authService.signInWithUsername(
+          username: _signInUsernameController.text.trim(),
           password: _passwordController.text,
         );
       }
       // AuthWrapper will handle navigation automatically
     } catch (e) {
       if (mounted) {
+        String errorMessage = '${_isSignUp ? 'Sign up' : 'Sign in'} failed';
+        
+        // Provide better error messages for common cases
+        if (e.toString().contains('Username not found')) {
+          errorMessage = 'Username not found. Please check your username or sign up.';
+        } else if (e.toString().contains('wrong-password')) {
+          errorMessage = 'Incorrect password. Please try again.';
+        } else if (e.toString().contains('user-not-found')) {
+          errorMessage = 'Account not found. Please check your credentials.';
+        } else if (e.toString().contains('email-already-in-use')) {
+          errorMessage = 'An account with this email already exists.';
+        } else if (e.toString().contains('Username is already taken')) {
+          errorMessage = 'This username is already taken. Please choose another.';
+        } else if (e.toString().contains('weak-password')) {
+          errorMessage = 'Password is too weak. Please choose a stronger password.';
+        } else if (e.toString().contains('invalid-email')) {
+          errorMessage = 'Please enter a valid email address.';
+        } else {
+          errorMessage = '$errorMessage: ${e.toString().replaceAll('Exception: ', '')}';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${_isSignUp ? 'Sign up' : 'Sign in'} failed: $e'),
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
           ),
         );
@@ -99,28 +126,82 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Email Field
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: const Icon(Icons.email_outlined),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      // Username Field (for sign-in) or Email Field (for sign-up)
+                      if (_isSignUp) ...[
+                        // Email Field for Sign Up
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!value.contains('@')) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
+                      ] else ...[
+                        // Username Field for Sign In
+                        TextFormField(
+                          controller: _signInUsernameController,
+                          decoration: InputDecoration(
+                            labelText: 'Username',
+                            prefixIcon: const Icon(Icons.person_outline),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter your username';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                       const SizedBox(height: 16),
+
+                      // Username Field (only for sign up)
+                      if (_isSignUp) ...[
+                        TextFormField(
+                          controller: _usernameController,
+                          decoration: InputDecoration(
+                            labelText: 'Username',
+                            prefixIcon: const Icon(Icons.person_outline),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (_isSignUp) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a username';
+                              }
+                              if (value.trim().length < 3) {
+                                return 'Username must be at least 3 characters';
+                              }
+                              if (value.trim().length > 20) {
+                                return 'Username must be less than 20 characters';
+                              }
+                              final regex = RegExp(r'^[a-zA-Z0-9_]+$');
+                              if (!regex.hasMatch(value.trim())) {
+                                return 'Username can only contain letters, numbers, and underscores';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // Password Field
                       TextFormField(

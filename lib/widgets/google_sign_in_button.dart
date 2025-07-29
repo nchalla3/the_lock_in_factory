@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'username_dialog.dart';
 
 class GoogleSignInButton extends StatefulWidget {
   const GoogleSignInButton({super.key});
@@ -41,12 +42,36 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google Sign-In Failed: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (e.toString().contains('NEW_USER_NEEDS_USERNAME')) {
+          // Show username dialog for new Google users
+          final username = await showDialog<String>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const UsernameDialog(isFromGoogleSignIn: true),
+          );
+          
+          if (username != null) {
+            // Username was set successfully
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Successfully signed in with Google!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } else {
+            // User canceled username dialog, sign them out
+            await _authService.signOut();
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Google Sign-In Failed: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) {

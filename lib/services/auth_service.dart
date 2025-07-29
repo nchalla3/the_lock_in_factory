@@ -53,8 +53,8 @@ class AuthService {
       if (userCredential.user != null) {
         final existingProfile = await _userService.getUserProfile(userCredential.user!.uid);
         if (existingProfile == null) {
-          // New user - they need to set a username
-          throw Exception('NEW_USER_NEEDS_USERNAME');
+          // New user - AuthWrapper will handle username setup
+          // Just return the user credential, no exception needed
         }
       }
 

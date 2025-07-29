@@ -31,8 +31,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Text(
         title,
-        style: GoogleFonts.oswald(
-          fontSize: 24,
+        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
           fontWeight: FontWeight.bold,
           color: const Color(0xFF8D6E63),
         ),
@@ -62,8 +61,7 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Text(
               title,
-              style: GoogleFonts.oswald(
-                fontSize: 16,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -76,10 +74,9 @@ class _HomePageState extends State<HomePage> {
             ),
             child: Text(
               type,
-              style: GoogleFonts.oswald(
-                fontSize: 12,
-                color: const Color(0xFF8D6E63),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w500,
+                color: const Color(0xFF8D6E63),
               ),
             ),
           ),
@@ -97,9 +94,9 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(
           'Locked-In',
-          style: GoogleFonts.oswald(
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            color: Colors.white,
           ),
         ),
         backgroundColor: const Color(0xFF8D6E63),
@@ -166,9 +163,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: Text(
                     'New Lock-In',
-                    style: GoogleFonts.oswald(
-                      fontSize: 18,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                 ),

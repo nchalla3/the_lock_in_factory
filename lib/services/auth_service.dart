@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final UserService _userService = UserService();
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
     // Web client ID for Google Sign-In
@@ -16,15 +18,18 @@ class AuthService {
 
   /// Sign in with Google
   /// Returns null if the user cancels the sign-in process
+  /// Throws exception if new user needs to set username
   Future<UserCredential?> signInWithGoogle() async {
     try {
+      UserCredential? userCredential;
+      
       if (kIsWeb) {
         // For web platforms, use the popup flow
         final GoogleAuthProvider googleProvider = GoogleAuthProvider();
         googleProvider.addScope('email');
         googleProvider.addScope('profile');
         
-        return await _auth.signInWithPopup(googleProvider);
+        userCredential = await _auth.signInWithPopup(googleProvider);
       } else {
         // For mobile platforms (Android/iOS)
         final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -41,8 +46,19 @@ class AuthService {
           idToken: googleAuth.idToken,
         );
 
-        return await _auth.signInWithCredential(credential);
+        userCredential = await _auth.signInWithCredential(credential);
       }
+
+      // Check if this is a new user who needs to set a username
+      if (userCredential.user != null) {
+        final existingProfile = await _userService.getUserProfile(userCredential.user!.uid);
+        if (existingProfile == null) {
+          // New user - AuthWrapper will handle username setup
+          // Just return the user credential, no exception needed
+        }
+      }
+
+      return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
@@ -64,13 +80,79 @@ class AuthService {
     );
   }
 
+  Future<UserCredential> signInWithUsername({
+    required String username,
+    required String password,
+  }) async {
+    try {
+      // Get email from username
+      final email = await _userService.getEmailByUsername(username);
+      if (email == null) {
+        // Simulate invalid credentials for non-existent username
+        await Future.delayed(Duration(milliseconds: 500)); // Optional delay
+        throw Exception('Invalid credentials');
+      }
+      
+      // Sign in with email and password
+      return await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } catch (e) {
+      // Catch invalid password errors and throw the same generic exception
+      throw Exception('Invalid credentials');
+    }
+  }
+
   Future<UserCredential> signUp({
     required String email,
     required String password,
+    required String username,
   }) async {
-    return await _auth.createUserWithEmailAndPassword(
+    // Check if username is available
+    final isAvailable = await _userService.isUsernameAvailable(username);
+    if (!isAvailable) {
+      throw Exception('Username is already taken');
+    }
+
+    // Create Firebase Auth account
+    final userCredential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
+    );
+
+    // Create user profile with username
+    if (userCredential.user != null) {
+      await _userService.createUserProfile(
+        uid: userCredential.user!.uid,
+        username: username,
+        email: email,
+        displayName: userCredential.user!.displayName,
+        photoUrl: userCredential.user!.photoURL,
+      );
+    }
+
+    return userCredential;
+  }
+
+  // Add method to check username availability
+  Future<bool> isUsernameAvailable(String username) async {
+    return await _userService.isUsernameAvailable(username);
+  }
+
+  // Complete Google Sign-In by creating user profile with username
+  Future<void> completeGoogleSignInWithUsername(String username) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('No authenticated user found');
+    }
+
+    await _userService.createUserProfile(
+      uid: user.uid,
+      username: username,
+      email: user.email ?? '',
+      displayName: user.displayName,
+      photoUrl: user.photoURL,
     );
   }
 

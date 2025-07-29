@@ -84,17 +84,24 @@ class AuthService {
     required String username,
     required String password,
   }) async {
-    // Get email from username
-    final email = await _userService.getEmailByUsername(username);
-    if (email == null) {
-      throw Exception('Username not found');
+    try {
+      // Get email from username
+      final email = await _userService.getEmailByUsername(username);
+      if (email == null) {
+        // Simulate invalid credentials for non-existent username
+        await Future.delayed(Duration(milliseconds: 500)); // Optional delay
+        throw Exception('Invalid credentials');
+      }
+      
+      // Sign in with email and password
+      return await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } catch (e) {
+      // Catch invalid password errors and throw the same generic exception
+      throw Exception('Invalid credentials');
     }
-    
-    // Sign in with email and password
-    return await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
   }
 
   Future<UserCredential> signUp({

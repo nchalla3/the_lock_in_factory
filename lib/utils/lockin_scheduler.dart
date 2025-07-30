@@ -1,8 +1,14 @@
+
 import '../models/lockin.dart';
 import '../services/lockin_service.dart';
 
 class LockInScheduler {
   final LockInService _lockInService = LockInService();
+
+  /// Public method for testing: generates instances for a LockIn (for test only)
+  List<LockInInstance> generateInstancesForTest(LockIn lockIn, int daysAhead) {
+    return _generateInstances(lockIn, daysAhead);
+  }
 
   /// Creates instances for a LockIn based on its frequency
   /// This can be called when a LockIn is created or when updating schedules

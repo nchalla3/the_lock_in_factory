@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
+import '../../services/lockin_service.dart';
+import '../../models/lockin.dart';
+import '../lockin/create_lockin_page.dart';
+import '../lockin/lockin_details_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,20 +14,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
-
-  // Simplified mock data based on wireframe
-  final List<Map<String, dynamic>> _activeTasks = [
-    {'title': 'Interview practice', 'type': 'Today'},
-    {'title': 'Gym', 'type': 'Today'},
-  ];
-
-  final List<Map<String, dynamic>> _plannedTasks = [
-    {'title': 'Systems architecture', 'type': 'Planned'},
-  ];
-
-  final List<Map<String, dynamic>> _onHoldTasks = [
-    {'title': 'Marathon practice', 'type': 'On Hold'},
-  ];
+  final LockInService _lockInService = LockInService();
 
   Widget _buildSectionHeader(String title) {
     return Padding(
@@ -39,7 +29,143 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildTaskItem(String title, String type) {
+  Widget _buildLockInItem(LockIn lockIn) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => LockInDetailsPage(lockIn: lockIn),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    lockIn.title,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8D6E63).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    lockIn.frequency.toUpperCase(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF8D6E63),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (lockIn.description.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                lockIn.description,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.access_time,
+                  size: 16,
+                  color: Colors.grey[600],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  lockIn.reminderTime,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.grey[400],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Center(
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Colors.grey[600],
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTodayInstanceItem(LockIn lockIn, LockInInstance instance) {
+    Color statusColor;
+    IconData statusIcon;
+    String statusText;
+
+    switch (instance.status) {
+      case 'completed':
+        statusColor = Colors.green;
+        statusIcon = Icons.check_circle;
+        statusText = 'COMPLETED';
+        break;
+      case 'missed':
+        statusColor = Colors.red;
+        statusIcon = Icons.cancel;
+        statusText = 'MISSED';
+        break;
+      default:
+        statusColor = Colors.orange;
+        statusIcon = Icons.schedule;
+        statusText = 'PENDING';
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       padding: const EdgeInsets.all(16),
@@ -58,31 +184,87 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Row(
         children: [
+          Icon(
+            statusIcon,
+            color: statusColor,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  lockIn.title,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Scheduled for ${_formatTime(instance.scheduledFor)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF8D6E63).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+          if (instance.status == 'pending') ...[
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await _lockInService.completeLockInInstance(
+                    lockIn.id,
+                    instance.id,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Lock-In completed! 🎉'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error completing Lock-In: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              child: const Text('Complete'),
             ),
-            child: Text(
-              type,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF8D6E63),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                statusText,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: statusColor,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 
   @override
@@ -151,7 +333,11 @@ class _HomePageState extends State<HomePage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: Add new lock-in functionality
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const CreateLockInPage(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8D6E63),
@@ -172,21 +358,75 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            // Active Section
-            _buildSectionHeader('Active'),
-            ..._activeTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
+            // Today's Lock-Ins Section
+            _buildSectionHeader('Today\'s Lock-Ins'),
+            
+            // Stream builder for today's instances
+            user != null 
+                ? StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: _lockInService.getTodaysInstances(user.uid),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return _buildEmptyState('Error loading today\'s instances');
+                      }
+
+                      final todayInstances = snapshot.data ?? [];
+
+                      if (todayInstances.isEmpty) {
+                        return _buildEmptyState('No Lock-Ins scheduled for today');
+                      }
+
+                      return Column(
+                        children: todayInstances.map((item) {
+                          final lockIn = item['lockIn'] as LockIn;
+                          final instance = item['instance'] as LockInInstance;
+                          return _buildTodayInstanceItem(lockIn, instance);
+                        }).toList(),
+                      );
+                    },
+                  )
+                : _buildEmptyState('Please sign in to view today\'s Lock-Ins'),
             
             const SizedBox(height: 24),
 
-            // Planned Section
-            _buildSectionHeader('Planned'),
-            ..._plannedTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
+            // Your Lock-Ins Section
+            _buildSectionHeader('Your Lock-Ins'),
             
-            const SizedBox(height: 24),
+            // Stream builder for user's LockIns
+            user != null 
+                ? StreamBuilder<List<LockIn>>(
+                    stream: _lockInService.getUserLockIns(user.uid),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
 
-            // On Hold Section
-            _buildSectionHeader('On Hold'),
-            ..._onHoldTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
+                      if (snapshot.hasError) {
+                        return _buildEmptyState('Error loading Lock-Ins: ${snapshot.error}');
+                      }
+
+                      final lockIns = snapshot.data ?? [];
+
+                      if (lockIns.isEmpty) {
+                        return _buildEmptyState('No Lock-Ins yet. Create your first one above!');
+                      }
+
+                      return Column(
+                        children: lockIns.map((lockIn) => _buildLockInItem(lockIn)).toList(),
+                      );
+                    },
+                  )
+                : _buildEmptyState('Please sign in to view your Lock-Ins'),
             
             const SizedBox(height: 24),
           ],

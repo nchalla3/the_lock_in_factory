@@ -29,6 +29,7 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
   bool _isCheckingAvailability = false;
   bool? _isUsernameAvailable;
   String? _availabilityMessage;
+  int _debounceId = 0; // Add debounce counter for username checking
 
   @override
   void initState() {

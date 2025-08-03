@@ -20,7 +20,7 @@ class LockInScheduler {
         await _lockInService.createLockInInstance(lockIn.id, instance);
       } catch (e) {
         // Log error but continue with other instances
-        print('Error creating instance for ${lockIn.title}: $e');
+        _logger.e('Error creating instance for ${lockIn.title}: $e');
       }
     }
   }

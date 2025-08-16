@@ -1,9 +1,20 @@
 
 import '../models/lockin.dart';
 import '../services/lockin_service.dart';
+import 'package:logger/logger.dart';
 
 class LockInScheduler {
   final LockInService _lockInService = LockInService();
+  final Logger _logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 2,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      dateTimeFormat: DateTimeFormat.none,
+    ),
+  );
 
   /// Public method for testing: generates instances for a LockIn (for test only)
   List<LockInInstance> generateInstancesForTest(LockIn lockIn, int daysAhead) {

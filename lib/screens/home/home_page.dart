@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -49,7 +48,7 @@ class _HomePageState extends State<HomePage> {
         border: Border.all(color: Colors.grey[300]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 1),
@@ -61,15 +60,15 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Text(
               title,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF8D6E63).withOpacity(0.1),
+              color: const Color(0xFF8D6E63).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -88,7 +87,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
-    
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -128,8 +127,9 @@ class _HomePageState extends State<HomePage> {
                 backgroundColor: Colors.white,
                 child: Text(
                   (user?.displayName?.isNotEmpty == true
-                      ? user!.displayName![0]
-                      : user?.email?[0] ?? 'U').toUpperCase(),
+                          ? user!.displayName![0]
+                          : user?.email?[0] ?? 'U')
+                      .toUpperCase(),
                   style: const TextStyle(
                     color: Color(0xFF8D6E63),
                     fontWeight: FontWeight.bold,
@@ -174,20 +174,26 @@ class _HomePageState extends State<HomePage> {
 
             // Active Section
             _buildSectionHeader('Active'),
-            ..._activeTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
-            
+            ..._activeTasks.map(
+              (task) => _buildTaskItem(task['title'], task['type']),
+            ),
+
             const SizedBox(height: 24),
 
             // Planned Section
             _buildSectionHeader('Planned'),
-            ..._plannedTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
-            
+            ..._plannedTasks.map(
+              (task) => _buildTaskItem(task['title'], task['type']),
+            ),
+
             const SizedBox(height: 24),
 
             // On Hold Section
             _buildSectionHeader('On Hold'),
-            ..._onHoldTasks.map((task) => _buildTaskItem(task['title'], task['type'])),
-            
+            ..._onHoldTasks.map(
+              (task) => _buildTaskItem(task['title'], task['type']),
+            ),
+
             const SizedBox(height: 24),
           ],
         ),

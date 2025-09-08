@@ -12,14 +12,17 @@ class UserService {
       lineLength: 120,
       colors: true,
       printEmojis: true,
-      printTime: false,
+      dateTimeFormat: DateTimeFormat.none,
     ),
   );
 
   // Check if username is available
   Future<bool> isUsernameAvailable(String username) async {
     try {
-      final doc = await _firestore.collection('usernames').doc(username.toLowerCase()).get();
+      final doc = await _firestore
+          .collection('usernames')
+          .doc(username.toLowerCase())
+          .get();
       return !doc.exists;
     } catch (e) {
       throw Exception('Error checking username availability: $e');
@@ -80,7 +83,9 @@ class UserService {
       );
 
       // Reserve username
-      final usernameRef = _firestore.collection('usernames').doc(username.toLowerCase());
+      final usernameRef = _firestore
+          .collection('usernames')
+          .doc(username.toLowerCase());
       batch.set(usernameRef, {
         'uid': uid,
         'username': username, // Keep original case
@@ -114,7 +119,9 @@ class UserService {
   Future<void> updateUserProfile(UserProfile userProfile) async {
     try {
       final userRef = _firestore.collection('users').doc(userProfile.uid);
-      await userRef.update(userProfile.copyWith(updatedAt: DateTime.now()).toFirestore());
+      await userRef.update(
+        userProfile.copyWith(updatedAt: DateTime.now()).toFirestore(),
+      );
     } catch (e) {
       throw Exception('Error updating user profile: $e');
     }
@@ -126,15 +133,17 @@ class UserService {
       final userProfile = await getUserProfile(uid);
       if (userProfile != null) {
         final batch = _firestore.batch();
-        
+
         // Remove username reservation
-        final usernameRef = _firestore.collection('usernames').doc(userProfile.username.toLowerCase());
+        final usernameRef = _firestore
+            .collection('usernames')
+            .doc(userProfile.username.toLowerCase());
         batch.delete(usernameRef);
-        
+
         // Remove user profile
         final userRef = _firestore.collection('users').doc(uid);
         batch.delete(userRef);
-        
+
         await batch.commit();
       }
     } catch (e) {
@@ -156,17 +165,20 @@ class UserService {
   Future<UserProfile?> getUserProfileByUsername(String username) async {
     try {
       // Check the usernames collection for the corresponding user ID
-      final usernameDoc = await _firestore.collection('usernames').doc(username.toLowerCase()).get();
+      final usernameDoc = await _firestore
+          .collection('usernames')
+          .doc(username.toLowerCase())
+          .get();
       if (!usernameDoc.exists) {
         return null; // Username not found
       }
-      
+
       // Retrieve the user profile using the user ID
       final userId = usernameDoc.data()?['uid'];
       if (userId == null) {
         return null; // UID not found in the username document
       }
-      
+
       final userProfile = await getUserProfile(userId);
       return userProfile;
     } catch (e) {

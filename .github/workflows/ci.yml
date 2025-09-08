@@ -19,27 +19,16 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         flutter-version: 'latest'
-        channel: 'stable'
+        channel: 'beta'
         cache: true
         
     - name: Verify Flutter and Dart versions
       run: |
+        echo "=== Flutter Version ==="
         flutter --version
+        echo "=== Dart Version ==="
         dart --version
-        echo "Checking Dart SDK version compatibility..."
-        dart --version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1
-        
-    - name: Check Dart version compatibility
-      run: |
-        DART_VERSION=$(dart --version 2>&1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
-        echo "Current Dart version: $DART_VERSION"
-        echo "Required Dart version: ^3.8.1"
-        if [[ $(echo "$DART_VERSION 3.8.1" | tr " " "\n" | sort -V | head -1) != "3.8.1" ]]; then
-          echo "✓ Dart version $DART_VERSION meets requirement ^3.8.1"
-        else
-          echo "✗ Dart version $DART_VERSION does not meet requirement ^3.8.1"
-          echo "Will attempt dependency resolution anyway..."
-        fi
+        echo "======================"
         
     - name: Get dependencies
       run: flutter pub get
@@ -70,7 +59,7 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         flutter-version: 'latest'
-        channel: 'stable'
+        channel: 'beta'
         cache: true
         
     - name: Get dependencies

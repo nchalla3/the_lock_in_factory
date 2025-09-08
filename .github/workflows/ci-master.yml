@@ -1,0 +1,83 @@
+name: CI/CD Pipeline (Master Channel)
+
+on:
+  workflow_dispatch:  # Manual trigger for testing
+  push:
+    branches: [ copilot/fix-12 ]  # Test on this branch
+
+jobs:
+  test-master:
+    name: Test with Master Flutter
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter (Master Channel)
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'master'
+        cache: true
+        
+    - name: Verify Flutter and Dart versions
+      run: |
+        echo "=== Flutter Version ==="
+        flutter --version
+        echo "=== Dart Version ==="
+        dart --version
+        echo "======================"
+        
+    - name: Check Dart version compatibility
+      run: |
+        DART_VERSION=$(dart --version 2>&1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
+        echo "Current Dart version: $DART_VERSION"
+        echo "Required Dart version: ^3.8.1"
+        
+        # Convert versions to comparable format
+        DART_MAJOR=$(echo $DART_VERSION | cut -d. -f1)
+        DART_MINOR=$(echo $DART_VERSION | cut -d. -f2)
+        DART_PATCH=$(echo $DART_VERSION | cut -d. -f3)
+        
+        echo "Parsed Dart version: $DART_MAJOR.$DART_MINOR.$DART_PATCH"
+        
+        # Check if version meets requirement (>=3.8.1)
+        if [ "$DART_MAJOR" -gt 3 ] || \
+           ([ "$DART_MAJOR" -eq 3 ] && [ "$DART_MINOR" -gt 8 ]) || \
+           ([ "$DART_MAJOR" -eq 3 ] && [ "$DART_MINOR" -eq 8 ] && [ "$DART_PATCH" -ge 1 ]); then
+          echo "✓ Dart version $DART_VERSION meets requirement ^3.8.1"
+          echo "DART_VERSION_COMPATIBLE=true" >> $GITHUB_ENV
+        else
+          echo "✗ Dart version $DART_VERSION does not meet requirement ^3.8.1"
+          echo "DART_VERSION_COMPATIBLE=false" >> $GITHUB_ENV
+        fi
+        
+    - name: Get dependencies
+      run: |
+        echo "Attempting to resolve dependencies..."
+        if [ "$DART_VERSION_COMPATIBLE" = "false" ]; then
+          echo "⚠️  Dart version may not meet requirements, but trying anyway..."
+        fi
+        flutter pub get
+      
+    - name: Analyze code (if dependencies resolved)
+      run: flutter analyze
+      if: success()
+      
+    - name: Run tests (if analysis passed)
+      run: flutter test
+      if: success()
+      
+    - name: Build APK (if tests passed)
+      run: flutter build apk --release
+      if: success()
+      
+    - name: Report success
+      run: |
+        if [ "$DART_VERSION_COMPATIBLE" = "true" ]; then
+          echo "🎉 SUCCESS: Found compatible Dart version and all steps completed!"
+          echo "✓ Flutter Master channel supports Dart ^3.8.1"
+        else
+          echo "⚠️  WARNING: Dependencies resolved despite version mismatch"
+          echo "This might indicate the requirement can be relaxed"
+        fi

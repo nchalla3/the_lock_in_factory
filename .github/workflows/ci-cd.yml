@@ -192,7 +192,7 @@ jobs:
     - name: Build iOS Archive
       if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
       run: |
-        flutter build ipa --release
+        flutter build ipa --release --no-codesign
         
     - name: Upload iOS artifacts
       uses: actions/upload-artifact@v4

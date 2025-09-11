@@ -323,9 +323,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Download all artifacts
+
+    - name: Download web artifact
       uses: actions/download-artifact@v4
+      with:
+        name: web-builds
+        path: build/web/
       
     - name: Deploy to Firebase Hosting (Web)
       uses: FirebaseExtended/action-hosting-deploy@v0

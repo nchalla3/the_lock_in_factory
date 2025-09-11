@@ -289,6 +289,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     timeout-minutes: 15
+
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     
     steps:
     - name: Checkout code

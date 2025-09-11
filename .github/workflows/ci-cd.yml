@@ -81,9 +81,11 @@ jobs:
         echo "🔍 Checking for Google Services secret..."
         if [ -n "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" ]; then
           echo "✅ GOOGLE_SERVICES_JSON_BASE64 secret found"
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+          # Clean the base64 string and decode it
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | tr -d ' \t\n\r' | base64 -d > android/app/google-services.json
           echo "✅ Google Services JSON configured for Android"
           ls -la android/app/google-services.json
+          echo "📄 File size: $(wc -c < android/app/google-services.json) bytes"
         else
           echo "❌ ERROR: GOOGLE_SERVICES_JSON_BASE64 secret not found!"
           echo "📋 Please set up the secret in GitHub repository settings"
@@ -147,8 +149,12 @@ jobs:
     - name: Setup Google Services configuration
       run: |
         if [ -n "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" ]; then
-          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          echo "✅ GOOGLE_SERVICE_INFO_PLIST_BASE64 secret found"
+          # Clean the base64 string and decode it
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | tr -d ' \t\n\r' | base64 -d > ios/Runner/GoogleService-Info.plist
           echo "✅ GoogleService-Info.plist configured for iOS"
+          ls -la ios/Runner/GoogleService-Info.plist
+          echo "📄 File size: $(wc -c < ios/Runner/GoogleService-Info.plist) bytes"
         else
           echo "⚠️  Warning: GOOGLE_SERVICE_INFO_PLIST_BASE64 secret not found. Firebase features may not work."
         fi
@@ -222,8 +228,12 @@ jobs:
     - name: Setup Google Services configuration
       run: |
         if [ -n "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" ]; then
-          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > macos/Runner/GoogleService-Info.plist
+          echo "✅ GOOGLE_SERVICE_INFO_PLIST_BASE64 secret found"
+          # Clean the base64 string and decode it
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | tr -d ' \t\n\r' | base64 -d > macos/Runner/GoogleService-Info.plist
           echo "✅ GoogleService-Info.plist configured for macOS"
+          ls -la macos/Runner/GoogleService-Info.plist
+          echo "📄 File size: $(wc -c < macos/Runner/GoogleService-Info.plist) bytes"
         else
           echo "⚠️  Warning: GOOGLE_SERVICE_INFO_PLIST_BASE64 secret not found. Firebase features may not work."
         fi

@@ -46,7 +46,6 @@ app.*.map.json
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 macos/Runner/GoogleService-Info.plist
-setup_secrets.sh
 
 # Ignore iOS build/Xcode cache artifacts
 ios/build/

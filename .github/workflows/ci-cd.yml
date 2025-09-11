@@ -78,11 +78,18 @@ jobs:
       
     - name: Setup Google Services configuration
       run: |
+        echo "🔍 Checking for Google Services secret..."
         if [ -n "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" ]; then
+          echo "✅ GOOGLE_SERVICES_JSON_BASE64 secret found"
           echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
           echo "✅ Google Services JSON configured for Android"
+          ls -la android/app/google-services.json
         else
-          echo "⚠️  Warning: GOOGLE_SERVICES_JSON_BASE64 secret not found. Firebase features may not work."
+          echo "❌ ERROR: GOOGLE_SERVICES_JSON_BASE64 secret not found!"
+          echo "📋 Please set up the secret in GitHub repository settings"
+          echo "🔗 Go to: Settings → Secrets and variables → Actions"
+          echo "📝 Create secret named: GOOGLE_SERVICES_JSON_BASE64"
+          exit 1
         fi
       
     - name: Setup Android signing (if secrets available)

@@ -8,12 +8,8 @@ import '../../utils/validation_utils.dart';
 class UsernameSelectionPage extends StatefulWidget {
   final String? displayName;
   final String? photoUrl;
-  
-  const UsernameSelectionPage({
-    super.key,
-    this.displayName,
-    this.photoUrl,
-  });
+
+  const UsernameSelectionPage({super.key, this.displayName, this.photoUrl});
 
   @override
   State<UsernameSelectionPage> createState() => _UsernameSelectionPageState();
@@ -24,7 +20,7 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
   final _formKey = GlobalKey<FormState>();
   final UserService _userService = UserService();
   final AuthService _authService = AuthService();
-  
+
   bool _isLoading = false;
   bool _isCheckingAvailability = false;
   bool? _isUsernameAvailable;
@@ -54,7 +50,7 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]'), '')
         .trim();
-    
+
     // Ensure it's between min-max characters using centralized constants
     if (suggestion.length < ValidationUtils.minUsernameLength) {
       suggestion = '${suggestion}user';
@@ -62,7 +58,7 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
     if (suggestion.length > ValidationUtils.maxUsernameLength) {
       suggestion = suggestion.substring(0, ValidationUtils.maxUsernameLength);
     }
-    
+
     return suggestion;
   }
 
@@ -84,11 +80,13 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
     });
 
     try {
-      final isAvailable = await _userService.isUsernameAvailable(username.trim());
+      final isAvailable = await _userService.isUsernameAvailable(
+        username.trim(),
+      );
       setState(() {
         _isUsernameAvailable = isAvailable;
-        _availabilityMessage = isAvailable 
-            ? 'Username is available!' 
+        _availabilityMessage = isAvailable
+            ? 'Username is available!'
             : 'Username is already taken';
         _isCheckingAvailability = false;
       });
@@ -109,25 +107,31 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
     setState(() => _isLoading = true);
 
     try {
-      await _authService.completeGoogleSignInWithUsername(_usernameController.text.trim());
-      
+      await _authService.completeGoogleSignInWithUsername(
+        _usernameController.text.trim(),
+      );
+
       if (mounted) {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Username set successfully! Welcome to Lock-In Factory!'),
+            content: Text(
+              'Username set successfully! Welcome to Lock-In Factory!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Small delay to ensure Firestore write is complete
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         // Force a complete app restart by navigating to a new AuthWrapper
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const AuthWrapper()),
-          (route) => false,
-        );
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AuthWrapper()),
+            (route) => false,
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -196,7 +200,7 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      
+
                       Text(
                         'Choose a unique username to complete your account setup',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -218,38 +222,46 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
                                   height: 20,
                                   child: Padding(
                                     padding: EdgeInsets.all(12.0),
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   ),
                                 )
                               : _isUsernameAvailable == true
-                                  ? const Icon(Icons.check_circle, color: Colors.green)
-                                  : _isUsernameAvailable == false
-                                      ? const Icon(Icons.error, color: Colors.red)
-                                      : null,
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                )
+                              : _isUsernameAvailable == false
+                              ? const Icon(Icons.error, color: Colors.red)
+                              : null,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           helperText: _availabilityMessage,
                           helperStyle: TextStyle(
-                            color: _isUsernameAvailable == true 
-                                ? Colors.green 
-                                : _isUsernameAvailable == false 
-                                    ? Colors.red 
-                                    : Colors.grey[600],
+                            color: _isUsernameAvailable == true
+                                ? Colors.green
+                                : _isUsernameAvailable == false
+                                ? Colors.red
+                                : Colors.grey[600],
                           ),
                         ),
                         onChanged: (value) {
                           // Debounce username checking
                           final currentDebounceId = ++_debounceId;
                           Future.delayed(const Duration(milliseconds: 500), () {
-                            if (_debounceId == currentDebounceId && _usernameController.text == value && value.isNotEmpty) {
+                            if (_debounceId == currentDebounceId &&
+                                _usernameController.text == value &&
+                                value.isNotEmpty) {
                               _checkUsernameAvailability(value);
                             }
                           });
                         },
                         validator: (value) {
                           // Use centralized validation
-                          final validationError = ValidationUtils.validateUsername(value);
+                          final validationError =
+                              ValidationUtils.validateUsername(value);
                           if (validationError != null) {
                             return validationError;
                           }
@@ -265,8 +277,9 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: (_isLoading || _isUsernameAvailable != true) 
-                              ? null 
+                          onPressed:
+                              (_isLoading || _isUsernameAvailable != true)
+                              ? null
                               : _confirmUsername,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF8D6E63),
@@ -282,7 +295,9 @@ class _UsernameSelectionPageState extends State<UsernameSelectionPage> {
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Text(

@@ -76,6 +76,15 @@ jobs:
     - name: Install dependencies
       run: flutter pub get
       
+    - name: Setup Google Services configuration
+      run: |
+        if [ -n "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" ]; then
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+          echo "✅ Google Services JSON configured for Android"
+        else
+          echo "⚠️  Warning: GOOGLE_SERVICES_JSON_BASE64 secret not found. Firebase features may not work."
+        fi
+      
     - name: Setup Android signing (if secrets available)
       if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
       run: |
@@ -127,6 +136,15 @@ jobs:
         
     - name: Install dependencies
       run: flutter pub get
+      
+    - name: Setup Google Services configuration
+      run: |
+        if [ -n "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" ]; then
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          echo "✅ GoogleService-Info.plist configured for iOS"
+        else
+          echo "⚠️  Warning: GOOGLE_SERVICE_INFO_PLIST_BASE64 secret not found. Firebase features may not work."
+        fi
       
     - name: Install CocoaPods
       run: |
@@ -193,6 +211,15 @@ jobs:
       
     - name: Install dependencies
       run: flutter pub get
+      
+    - name: Setup Google Services configuration
+      run: |
+        if [ -n "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" ]; then
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > macos/Runner/GoogleService-Info.plist
+          echo "✅ GoogleService-Info.plist configured for macOS"
+        else
+          echo "⚠️  Warning: GOOGLE_SERVICE_INFO_PLIST_BASE64 secret not found. Firebase features may not work."
+        fi
       
     - name: Install CocoaPods for macOS
       run: |
